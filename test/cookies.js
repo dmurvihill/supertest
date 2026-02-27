@@ -157,6 +157,26 @@ describe('cookie', function () {
         })
         .end(done);
     });
+
+    it('respects case of cookie name', function () {
+      const app = express();
+      app.get('/users', function (req, res) {
+        res.cookie('Alpha', 'one', { domain: 'domain.com', path: '/', httpOnly: true });
+        res.send(200, { name: 'tobi' });
+      });
+      request(app)
+        .get('/users')
+        .expect('Content-Type', /json/)
+        .expect('Content-Length', '15')
+        .expect(200)
+        // assert 'Alpha' cookie is set with domain, path, and httpOnly options
+        .expect(cookies.set({ name: 'Alpha', options: ['domain', 'path', 'httponly'] }))
+        .end(function (err, res) {
+          if (err) {
+            throw err;
+          }
+        });
+    });
   });
 
   describe('.reset', function () {
@@ -1259,7 +1279,7 @@ describe('cookie', function () {
       // setup express test service
       const app = express();
 
-      app.get('/users', function(req, res) {
+      app.get('/users', function (req, res) {
         res.cookie('alpha', 'one', { domain: 'domain.com', path: '/', httpOnly: true });
         res.send(200, { name: 'tobi' });
       });
@@ -1274,29 +1294,7 @@ describe('cookie', function () {
         .expect(cookies.set({ name: 'alpha', options: ['domain', 'path', 'httponly'] }))
         // assert 'bravo' cookie is NOT set
         .expect(cookies.not('set', { name: 'bravo' }))
-        .end(function(err, res) {
-          if (err) {
-            throw err;
-          }
-        });
-    });
-  });
-
-  describe('Cookie name case is respected', function () {
-    it('asserts true if cookie name contains capital letters', function () {
-      const app = express();
-      app.get('/users', function(req, res) {
-        res.cookie('Alpha', 'one', { domain: 'domain.com', path: '/', httpOnly: true });
-        res.send(200, { name: 'tobi' });
-      });
-      request(app)
-        .get('/users')
-        .expect('Content-Type', /json/)
-        .expect('Content-Length', '15')
-        .expect(200)
-        // assert 'Alpha' cookie is set with domain, path, and httpOnly options
-        .expect(cookies.set({ name: 'Alpha', options: ['domain', 'path', 'httponly'] }))
-        .end(function(err, res) {
+        .end(function (err, res) {
           if (err) {
             throw err;
           }
